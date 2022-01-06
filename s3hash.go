@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"io"
 	"os"
-	"fmt"
+	//"fmt"
 	"strconv"
 )
 
@@ -48,7 +48,7 @@ func Calculate(f io.Reader, chunkSize int64, dataSize int64) (string, error) {
 		}
 		sumOfSums = append(sumOfSums, sum...)
 		parts++
-		fmt.Printf("\r Complete  %d / %d chunks,  %0.2f %%", i/chunkSize, chunks(dataSize, chunkSize), float64(i)/float64(dataSize)*100)
+		//fmt.Printf("\r Complete  %d / %d chunks,  %0.2f %%", i/chunkSize, chunks(dataSize, chunkSize), float64(i)/float64(dataSize)*100)
 		i += int64(lenRead)
 	}
 

@@ -54,7 +54,6 @@ func TestFile(t *testing.T) {
 	if result != "b1900dcc858c1fc72d2e798b946f7b54-2" {
 		t.Fatalf("no match for file")
 	}
-
 }
 
 // from fib_test.go
@@ -71,6 +70,28 @@ func BenchmarkGolden(b *testing.B) {
 			if result != g.out {
 				b.Fatalf("hash[%d](%s)(%d) = %s want %s", i, g.genesis, g.numRepeats, result, g.out)
 			}
+		}
+	}
+}
+
+
+func BenchmarkFile(b *testing.B) {
+	filename := "test/testfile"
+	file, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	stat, err := os.Stat(filename)
+	if err != nil {
+		panic(err)
+	}
+	for i := 0; i < b.N; i++ {
+		result, err := Calculate(file, 5*bytesInMb, stat.Size())
+		if err != nil {
+			b.Fatalf("Error")
+		}
+		if result != "b1900dcc858c1fc72d2e798b946f7b54-2" {
+			b.Fatalf("no match for file")
 		}
 	}
 }
