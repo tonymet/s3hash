@@ -3,10 +3,27 @@ package s3hash
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
 )
+
+type NotifyEvent struct {
+	i                   int64
+	chunkSize, dataSize int64
+	parts               int
+}
+
+func (e NotifyEvent) progress() float64 {
+	return float64(e.i) / float64(e.dataSize) * 100
+}
+
+type NotifyCallback = func(e NotifyEvent)
+
+func printProgress(e NotifyEvent) {
+	fmt.Printf("\r Complete  %d / %d chunks,  %0.2f %%", e.parts, e.chunks(), e.progress())
+}
 
 // CalculateForFile calculates the S3 hash of a given file with the given chunk size
 func CalculateForFile(filename string, chunkSize int64) (string, error) {
@@ -16,11 +33,19 @@ func CalculateForFile(filename string, chunkSize int64) (string, error) {
 	}
 	defer f.Close()
 
-	return Calculate(f, chunkSize)
+	return Calculate(f, chunkSize, printProgress)
+}
+
+func (e NotifyEvent) chunks() (chunks int64) {
+	chunks = e.dataSize / e.chunkSize
+	if e.dataSize%e.chunkSize != 0 {
+		chunks++
+	}
+	return
 }
 
 // Calculate calculates the S3 hash of a given io.ReadSeeker with the given chunk size.
-func Calculate(f io.ReadSeeker, chunkSize int64) (string, error) {
+func Calculate(f io.ReadSeeker, chunkSize int64, progress NotifyCallback) (string, error) {
 	dataSize, err := f.Seek(0, io.SeekEnd)
 	if err != nil {
 		return "", err
@@ -41,6 +66,7 @@ func Calculate(f io.ReadSeeker, chunkSize int64) (string, error) {
 		}
 		sumOfSums = append(sumOfSums, sum...)
 		parts++
+		progress(NotifyEvent{i, chunkSize, dataSize, parts})
 	}
 
 	var finalSum []byte

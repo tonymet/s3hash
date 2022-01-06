@@ -74,5 +74,6 @@ func main() {
 		}
 	}
 
+	SL.Println()
 	SL.Println(result)
 }
