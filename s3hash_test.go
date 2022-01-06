@@ -26,12 +26,14 @@ func TestGolden(t *testing.T) {
 	for i, g := range golden {
 		data := bytes.Repeat([]byte(g.genesis), g.numRepeats)
 		rdr := bytes.NewReader(data)
-		result, err := Calculate(rdr, g.chunkSize)
+		result, err := Calculate(rdr, g.chunkSize, int64(len(g.genesis)*g.numRepeats))
 		if err != nil {
 			t.Fatalf("Error calculating golden #%v: %v", i, err)
 		}
 		if result != g.out {
 			t.Fatalf("hash[%d](%s)(%d) = %s want %s", i, g.genesis, g.numRepeats, result, g.out)
+		} else {
+			t.Logf("success: %+v", g)
 		}
 	}
 }

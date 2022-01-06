@@ -10,15 +10,15 @@ import (
 )
 
 const IOBUF = 1024 * 1024 * 50
-const BUFSIZE = 1024 * 1024 * 10
+const BUFSIZE = int64(1024 * 1024 * 10)
 
 // CalculateForFile calculates the S3 hash of a given file with the given chunk size
 func CalculateForFile(filename string, chunkSize int64) (string, error) {
 	f, err := os.Open(filename)
-	defer f.Close()
 	if err != nil {
 		return "", err
 	}
+	defer f.Close()
 	stat, err := os.Stat(filename)
 	if err != nil {
 		panic(err)
@@ -30,7 +30,6 @@ func CalculateForFile(filename string, chunkSize int64) (string, error) {
 // Calculate calculates the S3 hash of a given io.ReadSeeker with the given chunk size.
 func Calculate(f io.Reader, chunkSize int64, dataSize int64) (string, error) {
 	chunks := dataSize / chunkSize
-	fmt.Printf("Datasize: %d\n", dataSize)
 
 	var (
 		sumOfSums []byte = make([]byte, 0, dataSize/chunkSize)
@@ -38,6 +37,7 @@ func Calculate(f io.Reader, chunkSize int64, dataSize int64) (string, error) {
 	)
 	for i := int64(0); i < dataSize; {
 		lenRead, sum, err := md5sum(&f, chunkSize)
+		fmt.Printf("lenRead: %d\n", lenRead)
 		if err != nil {
 			return "", err
 		}
@@ -70,22 +70,25 @@ func Calculate(f io.Reader, chunkSize int64, dataSize int64) (string, error) {
 }
 
 func md5sum(r *io.Reader, length int64) (int, []byte, error) {
+	var bufSize = BUFSIZE
+	if length < bufSize {
+		bufSize = length
+	}
 	var (
-		buf              = make([]byte, BUFSIZE)
+		buf              = make([]byte, bufSize)
 		h                = md5.New()
 		bufRead, lenRead int
 		err              error
 	)
 	for ; length > 0; length -= int64(bufRead) {
 		bufRead, err = (*r).Read(buf)
+		h.Write(buf[:bufRead])
+		lenRead += bufRead
 		if err != nil {
-			panic(err)
-			//return 0, []byte{}, err
+			//panic(err)
+			return lenRead, h.Sum(nil), nil
 		}
 		// truncate to lenRead
-		buf = buf[:bufRead]
-		h.Write(buf)
-		lenRead += bufRead
 	}
 	return lenRead, h.Sum(nil), nil
 }
