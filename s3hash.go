@@ -3,9 +3,9 @@ package s3hash
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"os"
+	"fmt"
 	"strconv"
 )
 
