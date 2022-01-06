@@ -2,6 +2,7 @@ package s3hash
 
 import (
 	"bytes"
+	"os"
 	"testing"
 )
 
@@ -34,4 +35,26 @@ func TestGolden(t *testing.T) {
 			t.Fatalf("hash[%d](%s)(%d) = %s want %s", i, g.genesis, g.numRepeats, result, g.out)
 		}
 	}
+}
+
+func BenchmarkFile(b *testing.B) {
+	filename := "test/testfile"
+	file, err := os.Open(filename)
+	if err != nil {
+		panic(err)
+	}
+	if err != nil {
+		panic(err)
+	}
+	for i := 0; i < b.N; i++ {
+		file.Seek(0, 0)
+		result, err := Calculate(file, 5*bytesInMb)
+		if err != nil {
+			b.Fatalf("Error")
+		}
+		if result != "b1900dcc858c1fc72d2e798b946f7b54-2" {
+			b.Fatalf("no match for file")
+		}
+	}
+
 }
