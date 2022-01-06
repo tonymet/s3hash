@@ -74,7 +74,6 @@ func BenchmarkGolden(b *testing.B) {
 	}
 }
 
-
 func BenchmarkFile(b *testing.B) {
 	filename := "test/testfile"
 	file, err := os.Open(filename)
@@ -86,6 +85,7 @@ func BenchmarkFile(b *testing.B) {
 		panic(err)
 	}
 	for i := 0; i < b.N; i++ {
+		file.Seek(0, 0)
 		result, err := Calculate(file, 5*bytesInMb, stat.Size())
 		if err != nil {
 			b.Fatalf("Error")
@@ -94,4 +94,5 @@ func BenchmarkFile(b *testing.B) {
 			b.Fatalf("no match for file")
 		}
 	}
+
 }
