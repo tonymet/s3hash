@@ -27,23 +27,28 @@ func CalculateForFile(filename string, chunkSize int64) (string, error) {
 	return Calculate(f, chunkSize, stat.Size())
 }
 
+func chunks(dataSize, chunkSize int64) (chunks int64) {
+	chunks = dataSize / chunkSize
+	if dataSize%chunkSize != 0 {
+		chunks++
+	}
+	return
+}
+
 // Calculate calculates the S3 hash of a given io.ReadSeeker with the given chunk size.
 func Calculate(f io.Reader, chunkSize int64, dataSize int64) (string, error) {
-	chunks := dataSize / chunkSize
-
 	var (
-		sumOfSums []byte = make([]byte, 0, dataSize/chunkSize)
+		sumOfSums []byte = make([]byte, 0, chunks(dataSize, chunkSize))
 		parts     int
 	)
 	for i := int64(0); i < dataSize; {
 		lenRead, sum, err := md5sum(&f, chunkSize)
-		fmt.Printf("lenRead: %d\n", lenRead)
 		if err != nil {
 			return "", err
 		}
 		sumOfSums = append(sumOfSums, sum...)
 		parts++
-		fmt.Printf("\r Complete  %d / %d chunks,  %0.2f %%", i/chunkSize, chunks, float64(i)/float64(dataSize)*100)
+		fmt.Printf("\r Complete  %d / %d chunks,  %0.2f %%", i/chunkSize, chunks(dataSize, chunkSize), float64(i)/float64(dataSize)*100)
 		i += int64(lenRead)
 	}
 

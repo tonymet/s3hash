@@ -32,8 +32,6 @@ func TestGolden(t *testing.T) {
 		}
 		if result != g.out {
 			t.Fatalf("hash[%d](%s)(%d) = %s want %s", i, g.genesis, g.numRepeats, result, g.out)
-		} else {
-			t.Logf("success: %+v", g)
 		}
 	}
 }
